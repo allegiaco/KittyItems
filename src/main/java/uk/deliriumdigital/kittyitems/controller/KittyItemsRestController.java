@@ -2,20 +2,18 @@ package uk.deliriumdigital.kittyitems.controller;
 
 import com.nftco.flow.sdk.FlowId;
 import com.nftco.flow.sdk.FlowScriptResponse;
-import com.nftco.flow.sdk.cadence.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import uk.deliriumdigital.kittyitems.controller.dto.DataTransferObject;
+import uk.deliriumdigital.kittyitems.exceptions.ArgumentNotFoundException;
 import uk.deliriumdigital.kittyitems.exceptions.TransactionException;
 import uk.deliriumdigital.kittyitems.flownftservice.KittyItemsFlowService;
 import uk.deliriumdigital.kittyitems.model.KittyItem;
 import uk.deliriumdigital.kittyitems.service.KittyItemsPersistenceService;
 
-import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/kitty-items")
@@ -53,7 +51,7 @@ public class KittyItemsRestController {
         try {
             FlowId tx = kittyService.mint(addr);
             return new ResponseEntity<String>(tx.getBase16Value(), HttpStatus.OK);
-        } catch (TransactionException e) {
+        } catch (TransactionException | ArgumentNotFoundException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.FORBIDDEN);
         }
 
@@ -68,7 +66,7 @@ public class KittyItemsRestController {
         try {
             FlowId tx = kittyService.mintAndList(addr);
             return new ResponseEntity<String>(tx.getBase16Value(), HttpStatus.OK);
-        } catch (TransactionException e) {
+        } catch (TransactionException | ArgumentNotFoundException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.FORBIDDEN);
         }
 
@@ -96,7 +94,7 @@ public class KittyItemsRestController {
         try {
             FlowId tx = kittyService.transfer(addr, recipient.getKittyItemId());
             return new ResponseEntity<String>(tx.getBase16Value(), HttpStatus.OK);
-        } catch (TransactionException e) {
+        } catch (TransactionException | ArgumentNotFoundException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.FORBIDDEN);
         }
 
@@ -118,9 +116,14 @@ public class KittyItemsRestController {
 
         var addr = checkFormat(address);
 
-        FlowScriptResponse response = kittyService.getKittyItem(addr, itemId);
+        FlowScriptResponse response = null;
+        try {
+            response = kittyService.getKittyItem(addr, itemId);
+            return new ResponseEntity<String>(response.getStringValue(), HttpStatus.OK);
+        } catch (ArgumentNotFoundException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.FORBIDDEN);
+        }
 
-        return new ResponseEntity<String>(response.getStringValue(), HttpStatus.OK);
     }
 
     @GetMapping("/supply")

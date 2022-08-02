@@ -1,16 +1,19 @@
 package uk.deliriumdigital.kittyitems.flownftservice;
 
 import com.nftco.flow.sdk.FlowAddress;
+import com.nftco.flow.sdk.FlowArgument;
 import com.nftco.flow.sdk.FlowId;
 import com.nftco.flow.sdk.FlowScriptResponse;
 import org.springframework.stereotype.Service;
 import uk.deliriumdigital.kittyitems.builders.ArgumentsBuilder;
+import uk.deliriumdigital.kittyitems.exceptions.ArgumentNotFoundException;
 import uk.deliriumdigital.kittyitems.exceptions.TransactionException;
 import uk.deliriumdigital.kittyitems.flownftservice.abstraction.FlowService;
 
 import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Service
@@ -52,16 +55,16 @@ public class StoreFrontService {
                 Arrays.asList(userAddress), userAddress, false);
     }
 
-    public FlowScriptResponse getItem(String address, int number) {
+    public FlowScriptResponse getItem(String address, int number) throws ArgumentNotFoundException {
 
         String script = "./cadence/scripts/nftStorefront/get_listing.cdc";
         Map<String, String> scriptChanges = new HashMap<String, String>();
         scriptChanges.put(storefrontPath, "0x".concat(storefrontAddress));
 
         var argumentsList = new ArgumentsBuilder()
-                .argumentField("AddressField", address)
-                .argumentField("UInt64NumberField", String.valueOf(number))
-                .build();
+                    .addressField(address)
+                    .numberField("UInt64NumberField", String.valueOf(number))
+                    .build();
 
         return flowService.executeScript(script, argumentsList, scriptChanges);
 
@@ -74,14 +77,14 @@ public class StoreFrontService {
         scriptChanges.put(storefrontPath, "0x".concat(storefrontAddress));
 
         var argumentsList = new ArgumentsBuilder()
-                .argumentField("AddressField", address)
+                .addressField(address)
                 .build();
 
         return flowService.executeScript(script, argumentsList, scriptChanges);
 
     }
 
-    public FlowId buy(Long number) throws TransactionException {
+    public FlowId buy(Long number) throws TransactionException, ArgumentNotFoundException {
 
         FlowAddress userAddress = this.flowService.returnUserAddress();
         String transaction = "./cadence/transactions/nftStorefront/purchase_listing.cdc";
@@ -93,15 +96,15 @@ public class StoreFrontService {
         scriptChanges.put(storefrontPath, "0x".concat(storefrontAddress));
 
         var argumentsList = new ArgumentsBuilder()
-                .argumentField("UInt64NumberField", String.valueOf(number))
-                .argumentField("AddressField", minterAddress)
-                .build();
+                    .numberField("UInt64NumberField", String.valueOf(number))
+                    .addressField(minterAddress)
+                    .build();
 
         return flowService.sendTxUserPay(transaction, argumentsList, scriptChanges, userAddress,
                 Arrays.asList(userAddress), userAddress, false);
     }
 
-    public FlowId sell(Long number, BigDecimal price) throws TransactionException {
+    public FlowId sell(Long number, BigDecimal price) throws TransactionException, ArgumentNotFoundException {
 
         FlowAddress userAddress = this.flowService.returnUserAddress();
         String transaction = "./cadence/transactions/nftStorefront/create_listing.cdc";
@@ -113,15 +116,15 @@ public class StoreFrontService {
         scriptChanges.put(storefrontPath, "0x".concat(storefrontAddress));
 
         var argumentsList = new ArgumentsBuilder()
-                .argumentField("UInt64NumberField", String.valueOf(number))
-                .argumentField("UFix64NumberField", price.setScale(8).toPlainString())
-                .build();
+                    .numberField("UInt64NumberField", String.valueOf(number))
+                    .numberField("UFix64NumberField", price.setScale(8).toPlainString())
+                    .build();
 
         return flowService.sendTxMinterPay(transaction, argumentsList, scriptChanges, userAddress,
                 Arrays.asList(userAddress), userAddress, true);
     }
 
-    public FlowScriptResponse getListingItem(String account, Long listingResourceId) {
+    public FlowScriptResponse getListingItem(String account, Long listingResourceId) throws ArgumentNotFoundException {
 
         String script = "./cadence/scripts/nftStorefront/get_listing_item.cdc";
         Map<String, String> scriptChanges = new HashMap<String, String>();
@@ -131,9 +134,9 @@ public class StoreFrontService {
         scriptChanges.put(storefrontPath, "0x".concat(storefrontAddress));
 
         var argumentsList = new ArgumentsBuilder()
-                .argumentField("AddressField", account)
-                .argumentField("UInt64NumberField", String.valueOf(listingResourceId))
-                .build();
+                    .addressField(account)
+                    .numberField("UInt64NumberField", String.valueOf(listingResourceId))
+                    .build();
 
         return flowService.executeScript(script, argumentsList, scriptChanges);
     }

@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import uk.deliriumdigital.kittyitems.controller.dto.DataTransferObject;
+import uk.deliriumdigital.kittyitems.exceptions.ArgumentNotFoundException;
 import uk.deliriumdigital.kittyitems.exceptions.TransactionException;
 import uk.deliriumdigital.kittyitems.flownftservice.StoreFrontService;
 
@@ -29,7 +30,7 @@ public class StoreFrontRestController {
         try {
             FlowId tx = service.buy(dto.getKittyItemId());
             return new ResponseEntity<String>(tx.getBase16Value(), HttpStatus.OK);
-        } catch (TransactionException e) {
+        } catch (TransactionException | ArgumentNotFoundException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.FORBIDDEN);
         }
 
@@ -59,7 +60,7 @@ public class StoreFrontRestController {
         try {
             FlowId tx = service.sell(dto.getKittyItemId(), priceBigDec);
             return new ResponseEntity<String>(tx.getBase16Value(), HttpStatus.OK);
-        } catch (TransactionException e) {
+        } catch (TransactionException | ArgumentNotFoundException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.FORBIDDEN);
         }
 
@@ -81,8 +82,14 @@ public class StoreFrontRestController {
 
         var addr = checkFormat(account);
 
-        FlowScriptResponse response = service.getItem(addr, item);
-        return new ResponseEntity<String>(response.getStringValue(), HttpStatus.OK);
+        FlowScriptResponse response = null;
+        try {
+            response = service.getItem(addr, item);
+            return new ResponseEntity<String>(response.getStringValue(), HttpStatus.OK);
+
+        } catch (ArgumentNotFoundException e) {
+            return new ResponseEntity<String>(e.getMessage(), HttpStatus.FORBIDDEN);
+        }
     }
 
     @GetMapping("/collection/getlistingitem/{account}/{item}")
@@ -91,8 +98,13 @@ public class StoreFrontRestController {
 
         var addr = checkFormat(account);
 
-        FlowScriptResponse response = service.getListingItem(addr, item);
-        return new ResponseEntity<String>(response.getStringValue(), HttpStatus.OK);
+        FlowScriptResponse response = null;
+        try {
+            response = service.getListingItem(addr, item);
+            return new ResponseEntity<String>(response.getStringValue(), HttpStatus.OK);
+        } catch (ArgumentNotFoundException e) {
+            return new ResponseEntity<String>(e.getMessage(), HttpStatus.FORBIDDEN);
+        }
     }
 
     @GetMapping("/market/latest")

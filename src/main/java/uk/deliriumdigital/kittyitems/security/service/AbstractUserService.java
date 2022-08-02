@@ -3,8 +3,10 @@ package uk.deliriumdigital.kittyitems.security.service;
 
 import uk.deliriumdigital.kittyitems.security.model.User;
 
+import java.util.Optional;
+
 public interface AbstractUserService {
 
-	User saveUser(User u);
+	Optional<User> saveUser(User u);
 
 }

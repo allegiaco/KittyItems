@@ -8,7 +8,7 @@ import uk.deliriumdigital.kittyitems.security.model.User;
 
 public interface UserRepository extends JpaRepository<User, Long> {
 	
-	Optional<User> findByUsername(String nome);
+	Optional<User> findByUsername(String name);
 
 
 }

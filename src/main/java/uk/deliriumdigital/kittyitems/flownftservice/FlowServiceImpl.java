@@ -30,12 +30,12 @@ public class FlowServiceImpl implements FlowService {
 
     @Value("${flowaccess.minterFlowAddress}")
     private String minterFlowAddress;
+    private PrivateKey minterPrivateKey;
+
     private String userFlowAddress;
+    private PrivateKey userPrivateKey;
 
     private FlowAccessApi accessAPI;
-
-    private PrivateKey minterPrivateKey;
-    private PrivateKey userPrivateKey;
 
     private ReusableBufferedReader reader;
 

@@ -6,6 +6,7 @@ import com.nftco.flow.sdk.FlowId;
 import com.nftco.flow.sdk.FlowScriptResponse;
 import org.springframework.stereotype.Service;
 import uk.deliriumdigital.kittyitems.builders.ArgumentsBuilder;
+import uk.deliriumdigital.kittyitems.exceptions.ArgumentNotFoundException;
 import uk.deliriumdigital.kittyitems.exceptions.TransactionException;
 import uk.deliriumdigital.kittyitems.model.enums.Kind;
 import uk.deliriumdigital.kittyitems.model.enums.Rarity;
@@ -42,12 +43,12 @@ public class KittyItemsFlowService {
     private Kind randomKind() {
 
         Kind[] kindArray = Kind.values();
-        return kindArray[rand.nextInt(kindArray.length + 1)];
+        return kindArray[rand.nextInt(kindArray.length)];
     }
 
     private Rarity randomRarity() {
         Rarity[] rarityArray = Rarity.values();
-        return rarityArray[rand.nextInt(rarityArray.length + 1)];
+        return rarityArray[rand.nextInt(rarityArray.length)];
     }
 
     public boolean setUser(String userFlowAddress, String userPrivateKey) {
@@ -91,7 +92,7 @@ public class KittyItemsFlowService {
                 Arrays.asList(minterAddress), minterAddress, false);
     }
 
-    public FlowId mint(String recipient) throws TransactionException {
+    public FlowId mint(String recipient) throws TransactionException, ArgumentNotFoundException {
 
         var minterAddress = flowService.returnMinterAddress();
         String transaction = "./cadence/transactions/kittyItems/mint_kitty_item.cdc";
@@ -103,16 +104,16 @@ public class KittyItemsFlowService {
         var rarity = randomRarity();
 
         var argumentsList = new ArgumentsBuilder()
-                .argumentField("AddressField", recipient)
-                .argumentField("UInt8NumberField", String.valueOf(kind.ordinal()))
-                .argumentField("UInt8NumberField", String.valueOf(rarity.ordinal()))
-                .build();
+                    .addressField(recipient)
+                    .numberField("UInt8NumberField", String.valueOf(kind.ordinal()))
+                    .numberField("UInt8NumberField", String.valueOf(rarity.ordinal()))
+                    .build();
 
         return flowService.sendTxMinterPay(transaction, argumentsList, scriptChanges, minterAddress,
                 Arrays.asList(minterAddress), minterAddress, true);
     }
 
-    public FlowId mintAndList(String recipient) throws TransactionException {
+    public FlowId mintAndList(String recipient) throws TransactionException, ArgumentNotFoundException {
 
         var minterAddress = flowService.returnMinterAddress();
         String transaction = "./cadence/transactions/kittyItems/mint_and_list_kitty_item.cdc";
@@ -127,17 +128,18 @@ public class KittyItemsFlowService {
         var rarity = randomRarity();
 
         var argumentsList = new ArgumentsBuilder()
-                .argumentField("AddressField", recipient)
-                .argumentField("UInt8NumberField", String.valueOf(kind.ordinal()))
-                .argumentField("UInt8NumberField", String.valueOf(rarity.ordinal()))
-                .build();
+                    .addressField(recipient)
+                    .numberField("UInt8NumberField", String.valueOf(kind.ordinal()))
+                    .numberField("UInt8NumberField", String.valueOf(rarity.ordinal()))
+                    .build();
+
 
         return flowService.sendTxMinterPay(transaction, argumentsList, scriptChanges, minterAddress,
                 Arrays.asList(minterAddress), minterAddress, false);
 
     }
 
-    public FlowId purchaseListing(String account, Long listingId) throws TransactionException {
+    public FlowId purchaseListing(String account, Long listingId) throws TransactionException, ArgumentNotFoundException {
 
         var userAddress = flowService.returnUserAddress();
 
@@ -151,16 +153,16 @@ public class KittyItemsFlowService {
 
 
         var argumentsList = new ArgumentsBuilder()
-                .argumentField("UInt64NumberField", listingId.toString())
-                .argumentField("AddressField", account)
-                .build();
+                    .numberField("UInt64NumberField", listingId.toString())
+                    .addressField(account)
+                    .build();
 
         return flowService.sendTxUserPay(transaction, argumentsList, scriptChanges, userAddress,
                 Arrays.asList(userAddress), userAddress, false);
 
     }
 
-    public FlowId transfer(String recipient, Long id) throws TransactionException {
+    public FlowId transfer(String recipient, Long id) throws TransactionException, ArgumentNotFoundException {
 
         var minterAddress = flowService.returnMinterAddress();
         String transaction = "./cadence/transactions/kittyItems/transfer_kitty_item.cdc";
@@ -169,9 +171,9 @@ public class KittyItemsFlowService {
         scriptChanges.put(kittyItemsPath, "0x".concat(kittyItemsAddress));
 
         var argumentsList = new ArgumentsBuilder()
-                .argumentField("AddressField", recipient)
-                .argumentField("UInt64NumberField", String.valueOf(id))
-                .build();
+                    .addressField(recipient)
+                    .numberField("UInt64NumberField", String.valueOf(id))
+                    .build();
 
         return flowService.sendTxMinterPay(transaction, argumentsList, scriptChanges, minterAddress,
                 Arrays.asList(minterAddress), minterAddress, true);
@@ -186,7 +188,7 @@ public class KittyItemsFlowService {
 
 
         var argumentsList = new ArgumentsBuilder()
-                .argumentField("AddressField", account)
+                .addressField(account)
                 .build();
 
         return flowService.executeScript(script, argumentsList, scriptChanges);
@@ -200,7 +202,7 @@ public class KittyItemsFlowService {
         scriptChanges.put(storefrontPath, "0x".concat(storefrontAddress));
 
         var argumentsList = new ArgumentsBuilder()
-                .argumentField("AddressField", "0042e6f28d52f7d7")
+                .addressField("0042e6f28d52f7d7")
                 .build();
 
         return flowService.executeScript(script, argumentsList, scriptChanges);
@@ -208,7 +210,7 @@ public class KittyItemsFlowService {
     }
 
 
-    public FlowScriptResponse getKittyItem(String address, int number) {
+    public FlowScriptResponse getKittyItem(String address, int number) throws ArgumentNotFoundException {
 
         String script = "./cadence/scripts/kittyItems/get_kitty_item.cdc";
         Map<String, String> scriptChanges = new HashMap<String, String>();
@@ -217,9 +219,9 @@ public class KittyItemsFlowService {
         scriptChanges.put(kittyItemsPath, "0x".concat(kittyItemsAddress));
 
         var argumentsList = new ArgumentsBuilder()
-                .argumentField("AddressField", address)
-                .argumentField("UInt64NumberField", String.valueOf(number))
-                .build();
+                    .addressField(address)
+                    .numberField("UInt64NumberField", String.valueOf(number))
+                    .build();
 
         return flowService.executeScript(script, argumentsList, scriptChanges);
 

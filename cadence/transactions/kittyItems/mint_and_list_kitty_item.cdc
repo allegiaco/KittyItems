@@ -4,8 +4,7 @@ import FungibleToken from "../../contracts/FungibleToken.cdc"
 import FlowToken from "../../contracts/FlowToken.cdc"
 import NFTStorefront from "../../contracts/NFTStorefront.cdc"
 
-// This transction uses the NFTMinter resource to mint a new NFT.
-
+// This transaction uses the NFTMinter resource to mint a new NFT.
 transaction(recipient: Address, kind: UInt8, rarity: UInt8) {
 
     // local variable for storing the minter reference
@@ -21,7 +20,7 @@ transaction(recipient: Address, kind: UInt8, rarity: UInt8) {
             ?? panic("Could not borrow a reference to the NFT minter")
 
          // We need a provider capability, but one is not provided by default so we create one if needed.
-        let kittyItemsCollectionProviderPrivatePath = /private/kittyItemsCollectionProvider
+        let kittyItemsCollectionProviderPrivatePath = /private/kittyItemsCollectionProviderV14
 
         self.flowReceiver = signer.getCapability<&FlowToken.Vault{FungibleToken.Receiver}>(/public/flowTokenReceiver)!
 
@@ -64,7 +63,7 @@ transaction(recipient: Address, kind: UInt8, rarity: UInt8) {
             receiver: self.flowReceiver,
             amount: KittyItems.getItemPrice(rarity: rarityValue)
         )
-        
+
         self.storefront.createListing(
             nftProviderCapability: self.kittyItemsProvider,
             nftType: Type<@KittyItems.NFT>(),

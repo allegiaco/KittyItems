@@ -1,6 +1,7 @@
 package uk.deliriumdigital.kittyitems.security.service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,12 +22,18 @@ public class UserService implements AbstractUserService {
 	private PasswordEncoder passwordEncoder;
 	
 	@Override
-	public User saveUser(User u) {
+	public Optional<User> saveUser(User u) {
 		String passwordHash = passwordEncoder.encode(u.getPassword());
 		String privateKeyHash = passwordEncoder.encode(u.getUserPrivateKey());
 		u.setPassword(passwordHash);
 		u.setUserPrivateKey(privateKeyHash);
-		return userRepo.save(u);
+		var user = userRepo.findByUsername(u.getUsername());
+		if(user.isEmpty()) {
+			return Optional.of(userRepo.save(u));
+		} else {
+			return Optional.empty();
+		}
+
 	}
 
 }

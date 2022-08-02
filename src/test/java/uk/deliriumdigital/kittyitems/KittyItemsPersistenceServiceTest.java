@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.AdditionalAnswers;
 import org.mockito.Mockito;
 import org.springframework.boot.test.context.SpringBootTest;
+import uk.deliriumdigital.kittyitems.exceptions.ArgumentNotFoundException;
 import uk.deliriumdigital.kittyitems.flownftservice.KittyItemsFlowService;
 import uk.deliriumdigital.kittyitems.model.KittyItem;
 import uk.deliriumdigital.kittyitems.model.enums.Kind;
@@ -83,8 +84,16 @@ public class KittyItemsPersistenceServiceTest {
 
         FlowScriptResponse flowScriptResponse2 = new FlowScriptResponse(new OptionalField(new StructField(v2)));
 
-        when(kittyItemsFlowService.getKittyItem("0xd34e6d685806bcd1", 3)).thenReturn(flowScriptResponse1);
-        when(kittyItemsFlowService.getKittyItem("0xd34e6d685806bcd1", 7)).thenReturn(flowScriptResponse2);
+        try {
+            when(kittyItemsFlowService.getKittyItem("0xd34e6d685806bcd1", 3)).thenReturn(flowScriptResponse1);
+        } catch (ArgumentNotFoundException e) {
+            e.printStackTrace();
+        }
+        try {
+            when(kittyItemsFlowService.getKittyItem("0xd34e6d685806bcd1", 7)).thenReturn(flowScriptResponse2);
+        } catch (ArgumentNotFoundException e) {
+            e.printStackTrace();
+        }
         when(kittyItemsRepository.save(any(KittyItem.class))).then(returnsFirstArg());
 
         ArrayField arrayField = new ArrayField( new Field<?>[] {

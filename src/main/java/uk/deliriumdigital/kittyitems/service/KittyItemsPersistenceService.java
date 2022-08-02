@@ -6,6 +6,7 @@ import com.nftco.flow.sdk.cadence.CompositeValue;
 import com.nftco.flow.sdk.cadence.Field;
 import com.nftco.flow.sdk.cadence.StructField;
 import org.springframework.stereotype.Service;
+import uk.deliriumdigital.kittyitems.exceptions.ArgumentNotFoundException;
 import uk.deliriumdigital.kittyitems.flownftservice.KittyItemsFlowService;
 import uk.deliriumdigital.kittyitems.model.KittyItem;
 import uk.deliriumdigital.kittyitems.model.enums.Kind;
@@ -42,8 +43,15 @@ public class KittyItemsPersistenceService {
                 .collect(Collectors.toList());
 
         var listKittyItems = listId.stream().map(id -> {
-                    var resp = kittyService.getKittyItem(addr, id);
-                    var sField = (StructField) resp.getJsonCadence().getValue();
+
+            FlowScriptResponse resp = null;
+
+            try {
+                resp = kittyService.getKittyItem(addr, id);
+            } catch (ArgumentNotFoundException e) {
+                e.printStackTrace();
+            }
+            var sField = (StructField) resp.getJsonCadence().getValue();
 
                     var map= Arrays.asList(sField.getValue().getFields())
                             .stream().collect(Collectors.toMap(CompositeAttribute::getName, c -> {

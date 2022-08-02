@@ -79,8 +79,13 @@ public class AuthController {
 
 		log.info("username {}", u.getUsername());
 		log.info("userFlowAddress {}", u.getUserFlowAddress());
-		userService.saveUser(u);
-		return ResponseEntity.ok("User " + u.getUsername() + " registered with success : Address " + u.getUserFlowAddress());
+		var savedUser = userService.saveUser(u);
+
+		if(savedUser.isEmpty()) {
+			return new ResponseEntity<String>("username already in use", HttpStatus.FORBIDDEN);
+		} else {
+			return ResponseEntity.ok("User " + u.getUsername() + " registered with success : Address " + u.getUserFlowAddress());
+		}
 	}
 
 	private String checkFormat(String address) {
